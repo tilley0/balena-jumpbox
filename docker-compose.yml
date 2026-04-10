@@ -63,6 +63,7 @@ services:
       - MGMT_WIFI_SSID
       - MGMT_WIFI_PASSWORD
       - MGMT_WIFI_INTERFACE
+      - ETH_INTERFACE
 
   dashboard:
     build: ./dashboard

@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-PORT="${SSH_PORT:-22222}"
+PORT="${SSH_PORT:-2223}"
 PASSWORD="${SSH_PASSWORD:-jumpbox}"
 
 echo "=== SSH Jumpbox Service ==="
