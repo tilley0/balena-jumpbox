@@ -4,7 +4,8 @@ RUN apk add --no-cache \
     hostapd \
     iptables \
     iw \
-    dnsmasq
+    dnsmasq \
+    networkmanager
 
 COPY start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh

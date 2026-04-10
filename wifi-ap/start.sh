@@ -30,6 +30,12 @@ while [ ! -d "/sys/class/net/${IFACE}" ]; do
 done
 echo "${IFACE} detected"
 
+# Release interface from NetworkManager before hostapd takes over
+echo "Releasing ${IFACE} from NetworkManager..."
+nmcli device disconnect "${IFACE}" 2>/dev/null || true
+nmcli device set "${IFACE}" managed no 2>/dev/null || true
+echo "${IFACE} is now unmanaged by NetworkManager"
+
 # Kill any existing wpa_supplicant on this interface
 if [ -f "/var/run/wpa_supplicant/${IFACE}" ]; then
     rm -f "/var/run/wpa_supplicant/${IFACE}"

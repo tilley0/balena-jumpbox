@@ -13,6 +13,7 @@ services:
       - NET_ADMIN
       - NET_RAW
     environment:
+      - DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket
       - AP_SSID
       - AP_PASSWORD
       - AP_CHANNEL
@@ -23,6 +24,7 @@ services:
       - ETH_INTERFACE
     labels:
       io.balena.features.kernel-modules: "1"
+      io.balena.features.dbus: "1"
 
   dhcp:
     build: ./dhcp
@@ -64,7 +66,6 @@ services:
       - MGMT_WIFI_PASSWORD
       - MGMT_WIFI_INTERFACE
       - ETH_INTERFACE
-      - AP_INTERFACE
 
   dashboard:
     build: ./dashboard
