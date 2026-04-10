@@ -6,9 +6,9 @@ import os
 import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
-PORT = int(os.environ.get("DASHBOARD_PORT", "8080"))
-USER = os.environ.get("DASHBOARD_USER", "admin")
-PASSWORD = os.environ.get("DASHBOARD_PASSWORD", "jumpbox")
+PORT = int(os.environ.get("DASHBOARD_PORT") or "8080")
+USER = os.environ.get("DASHBOARD_USER") or "admin"
+PASSWORD = os.environ.get("DASHBOARD_PASSWORD") or os.environ.get("SSH_PASSWORD") or "jumpbox"
 LEASES_FILE = "/data/leases/dnsmasq.leases"
 
 
