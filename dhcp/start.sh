@@ -24,10 +24,23 @@ while [ ! -d "/sys/class/net/${IFACE}" ]; do
     sleep 1
 done
 
+# Wait for eth0 to be unmanaged by NetworkManager (wifi-manager handles this)
+echo "Waiting for ${IFACE} to be released from NetworkManager..."
+TRIES=0
+while ip addr show dev "${IFACE}" 2>/dev/null | grep -q "dynamic"; do
+    TRIES=$((TRIES + 1))
+    if [ "$TRIES" -gt 30 ]; then
+        echo "WARNING: ${IFACE} may still have a dynamic address, proceeding anyway"
+        break
+    fi
+    sleep 1
+done
+
 # Assign static IP to eth0 (server-facing side)
 ip addr flush dev "${IFACE}" || true
 ip addr add "${IP}/${NETMASK}" dev "${IFACE}"
 ip link set "${IFACE}" up
+echo "${IFACE} configured with ${IP}/${NETMASK}"
 
 # Generate dnsmasq config
 cat > /etc/dnsmasq.conf <<EOF

@@ -73,12 +73,16 @@ iptables -A FORWARD -i "${IFACE}" -o "${ETH}" -j ACCEPT
 iptables -A FORWARD -i "${ETH}" -o "${IFACE}" -m state --state RELATED,ESTABLISHED -j ACCEPT
 
 # Run dnsmasq for AP-side DHCP (laptop gets an address)
+# Use --listen-address to avoid port 53 conflict with BalenaOS DNS
+# Use --port=0 to disable DNS server (not needed, just DHCP)
 dnsmasq \
     --interface="${IFACE}" \
+    --listen-address="${IP}" \
     --bind-interfaces \
     --dhcp-range="${DHCP_RANGE}" \
     --dhcp-option=option:router,"${IP}" \
-    --dhcp-option=option:dns-server,"${IP}" \
+    --dhcp-option=option:dns-server,8.8.8.8,8.8.4.4 \
+    --port=0 \
     --no-daemon &
 DNSMASQ_PID=$!
 
