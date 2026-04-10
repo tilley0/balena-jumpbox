@@ -1,0 +1,46 @@
+version: "2.1"
+
+services:
+  wifi-ap:
+    build: ./wifi-ap
+    network_mode: host
+    privileged: true
+    restart: always
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    environment:
+      - AP_SSID=${AP_SSID:-ct-jump}
+      - AP_PASSWORD=${AP_PASSWORD}
+      - AP_CHANNEL=${AP_CHANNEL:-6}
+      - AP_INTERFACE=${AP_INTERFACE:-wlan1}
+      - AP_IP=${AP_IP:-10.0.0.1}
+      - AP_NETMASK=${AP_NETMASK:-255.255.255.0}
+      - AP_DHCP_RANGE=${AP_DHCP_RANGE:-10.0.0.10,10.0.0.50,12h}
+      - ETH_INTERFACE=${ETH_INTERFACE:-eth0}
+    labels:
+      io.balena.features.kernel-modules: "1"
+
+  dhcp:
+    build: ./dhcp
+    network_mode: host
+    privileged: true
+    restart: always
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - ETH_INTERFACE=${ETH_INTERFACE:-eth0}
+      - ETH_IP=${ETH_IP:-192.168.100.1}
+      - ETH_NETMASK=${ETH_NETMASK:-255.255.255.0}
+      - ETH_DHCP_RANGE=${ETH_DHCP_RANGE:-192.168.100.10,192.168.100.200,12h}
+      - ETH_DNS=${ETH_DNS:-8.8.8.8,8.8.4.4}
+
+  ssh-jumpbox:
+    build: ./ssh-jumpbox
+    network_mode: host
+    restart: always
+    environment:
+      - SSH_PASSWORD=${SSH_PASSWORD}
+      - SSH_PORT=${SSH_PORT:-22222}
+    labels:
+      io.balena.features.balena-socket: "1"

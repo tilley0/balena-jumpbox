@@ -1,0 +1,4 @@
+.balena/
+.resin/
+node_modules/
+.env
