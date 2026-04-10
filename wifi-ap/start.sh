@@ -75,6 +75,7 @@ iptables -A FORWARD -i "${ETH}" -o "${IFACE}" -m state --state RELATED,ESTABLISH
 # Run dnsmasq for AP-side DHCP (laptop gets an address)
 # Use --listen-address to avoid port 53 conflict with BalenaOS DNS
 # Use --port=0 to disable DNS server (not needed, just DHCP)
+mkdir -p /data/ap-leases
 dnsmasq \
     --interface="${IFACE}" \
     --listen-address="${IP}" \
@@ -82,6 +83,7 @@ dnsmasq \
     --dhcp-range="${DHCP_RANGE}" \
     --dhcp-option=option:router,"${IP}" \
     --dhcp-option=option:dns-server,8.8.8.8,8.8.4.4 \
+    --dhcp-leasefile=/data/ap-leases/dnsmasq.leases \
     --port=0 \
     --no-daemon &
 DNSMASQ_PID=$!

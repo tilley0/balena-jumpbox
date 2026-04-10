@@ -9,7 +9,8 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 PORT = int(os.environ.get("DASHBOARD_PORT") or "8080")
 USER = os.environ.get("DASHBOARD_USER") or "admin"
 PASSWORD = os.environ.get("DASHBOARD_PASSWORD") or os.environ.get("SSH_PASSWORD") or "jumpbox"
-LEASES_FILE = "/data/leases/dnsmasq.leases"
+ETH_LEASES_FILE = "/data/leases/dnsmasq.leases"
+AP_LEASES_FILE = "/data/ap-leases/dnsmasq.leases"
 
 
 def check_auth(handler):
@@ -20,10 +21,10 @@ def check_auth(handler):
     return decoded == f"{USER}:{PASSWORD}"
 
 
-def parse_leases():
+def parse_leases(lease_file, network):
     leases = []
     try:
-        with open(LEASES_FILE, "r") as f:
+        with open(lease_file, "r") as f:
             for line in f:
                 parts = line.strip().split()
                 if len(parts) >= 4:
@@ -36,15 +37,18 @@ def parse_leases():
                         "mac": mac.upper(),
                         "ip": ip,
                         "hostname": hostname,
+                        "network": network,
                     })
     except FileNotFoundError:
         pass
     return leases
 
 
-def classify_mac(mac):
-    """Guess device type from MAC OUI prefix."""
-    oui = mac[:8].upper()
+def classify_device(lease):
+    """Guess device type from MAC OUI prefix and network."""
+    if lease["network"] == "WiFi AP":
+        return "WiFi Client"
+    oui = lease["mac"][:8].upper()
     idrac_ouis = {
         "D0:94:66", "F4:02:70", "F8:BC:12", "50:9A:4C",
         "18:66:DA", "B0:83:FE", "4C:D9:8F", "F0:1F:AF",
@@ -54,10 +58,17 @@ def classify_mac(mac):
     return "Server/NIC"
 
 
-def render_html(leases):
+def network_badge(network):
+    if network == "WiFi AP":
+        return '<span style="background:#6c5ce7;padding:2px 8px;border-radius:4px;font-size:11px;">WiFi</span>'
+    return '<span style="background:#00b894;padding:2px 8px;border-radius:4px;font-size:11px;">Wired</span>'
+
+
+def render_html(eth_leases, ap_leases):
+    all_leases = eth_leases + ap_leases
     now = int(time.time())
     rows = ""
-    for l in sorted(leases, key=lambda x: x["ip"]):
+    for l in sorted(all_leases, key=lambda x: (x["network"], x["ip"])):
         remaining = l["expiry"] - now
         if remaining > 0:
             hours = remaining // 3600
@@ -65,9 +76,10 @@ def render_html(leases):
             ttl = f"{hours}h {minutes}m"
         else:
             ttl = "expired"
-        device_type = classify_mac(l["mac"])
+        device_type = classify_device(l)
         rows += f"""
         <tr>
+            <td>{network_badge(l['network'])}</td>
             <td>{l['ip']}</td>
             <td><code>{l['mac']}</code></td>
             <td>{l['hostname']}</td>
@@ -76,7 +88,10 @@ def render_html(leases):
         </tr>"""
 
     if not rows:
-        rows = '<tr><td colspan="5" style="text-align:center;color:#888;">No leases yet</td></tr>'
+        rows = '<tr><td colspan="6" style="text-align:center;color:#888;">No leases yet</td></tr>'
+
+    idrac_count = sum(1 for l in eth_leases if classify_device(l) == "iDRAC")
+    server_count = sum(1 for l in eth_leases if classify_device(l) != "iDRAC")
 
     return f"""<!DOCTYPE html>
 <html>
@@ -105,13 +120,15 @@ def render_html(leases):
         tr:hover {{ background: #1a2744; }}
         code {{ background: #0f3460; padding: 2px 6px; border-radius: 3px; }}
         .stats {{
-            display: flex; gap: 20px; margin-bottom: 20px;
+            display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;
         }}
         .stat {{
             background: #16213e; padding: 15px 20px;
             border-radius: 8px; border-left: 3px solid #00d4aa;
         }}
+        .stat.wifi {{ border-left-color: #6c5ce7; }}
         .stat-value {{ font-size: 24px; font-weight: bold; color: #00d4aa; }}
+        .stat.wifi .stat-value {{ color: #6c5ce7; }}
         .stat-label {{ font-size: 12px; color: #888; }}
     </style>
 </head>
@@ -120,21 +137,26 @@ def render_html(leases):
     <div class="subtitle">Auto-refreshes every 10 seconds</div>
     <div class="stats">
         <div class="stat">
-            <div class="stat-value">{len(leases)}</div>
-            <div class="stat-label">Connected Hosts</div>
+            <div class="stat-value">{len(eth_leases)}</div>
+            <div class="stat-label">Wired Hosts</div>
         </div>
         <div class="stat">
-            <div class="stat-value">{sum(1 for l in leases if classify_mac(l['mac']) == 'iDRAC')}</div>
-            <div class="stat-label">iDRAC Interfaces</div>
+            <div class="stat-value">{idrac_count}</div>
+            <div class="stat-label">iDRAC</div>
         </div>
         <div class="stat">
-            <div class="stat-value">{sum(1 for l in leases if classify_mac(l['mac']) != 'iDRAC')}</div>
+            <div class="stat-value">{server_count}</div>
             <div class="stat-label">Server NICs</div>
+        </div>
+        <div class="stat wifi">
+            <div class="stat-value">{len(ap_leases)}</div>
+            <div class="stat-label">WiFi Clients</div>
         </div>
     </div>
     <table>
         <thead>
             <tr>
+                <th>Network</th>
                 <th>IP Address</th>
                 <th>MAC Address</th>
                 <th>Hostname</th>
@@ -159,8 +181,9 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(b"Unauthorized")
             return
 
-        leases = parse_leases()
-        html = render_html(leases)
+        eth_leases = parse_leases(ETH_LEASES_FILE, "Wired")
+        ap_leases = parse_leases(AP_LEASES_FILE, "WiFi AP")
+        html = render_html(eth_leases, ap_leases)
         self.send_response(200)
         self.send_header("Content-Type", "text/html")
         self.end_headers()

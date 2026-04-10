@@ -2,6 +2,7 @@ version: "2.1"
 
 volumes:
   leases:
+  ap-leases:
 
 services:
   wifi-ap:
@@ -12,6 +13,8 @@ services:
     cap_add:
       - NET_ADMIN
       - NET_RAW
+    volumes:
+      - ap-leases:/data/ap-leases
     environment:
       - DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket
       - AP_SSID
@@ -75,6 +78,7 @@ services:
     restart: always
     volumes:
       - leases:/data/leases:ro
+      - ap-leases:/data/ap-leases:ro
     environment:
       - DASHBOARD_PORT
       - DASHBOARD_USER
