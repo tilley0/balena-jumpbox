@@ -9,7 +9,7 @@ CONNECTION_NAME="mgmt-wifi"
 echo "=== WiFi Manager Service ==="
 
 if [ -z "${SSID}" ]; then
-    echo "MGMT_WIFI_SSID not set — skipping WiFi configuration"
+    echo "MGMT_WIFI_SSID not set -- skipping WiFi configuration"
     echo "Set MGMT_WIFI_SSID and MGMT_WIFI_PASSWORD in Balena Cloud to configure"
     sleep infinity
 fi
@@ -30,15 +30,13 @@ nmcli connection add \
 
 # Bring it up
 echo "Connecting to ${SSID}..."
-nmcli connection up "${CONNECTION_NAME}"
-
-if [ $? -eq 0 ]; then
+if nmcli connection up "${CONNECTION_NAME}"; then
     echo "Connected to ${SSID} successfully"
     nmcli device show "${IFACE}" | grep -E "IP4\.(ADDRESS|GATEWAY|DNS)"
 else
     echo "ERROR: Failed to connect to ${SSID}"
 fi
 
-# Stay alive — container restart on env var change will re-run this script
+# Stay alive -- container restart on env var change will re-run this script
 echo "WiFi manager idle. Change MGMT_WIFI_SSID to reconfigure."
 sleep infinity

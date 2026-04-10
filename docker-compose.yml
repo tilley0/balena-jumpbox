@@ -13,14 +13,14 @@ services:
       - NET_ADMIN
       - NET_RAW
     environment:
-      - AP_SSID=${AP_SSID:-ct-jump}
-      - AP_PASSWORD=${AP_PASSWORD}
-      - AP_CHANNEL=${AP_CHANNEL:-6}
-      - AP_INTERFACE=${AP_INTERFACE:-wlan1}
-      - AP_IP=${AP_IP:-10.0.0.1}
-      - AP_NETMASK=${AP_NETMASK:-255.255.255.0}
-      - AP_DHCP_RANGE=${AP_DHCP_RANGE:-10.0.0.10,10.0.0.50,12h}
-      - ETH_INTERFACE=${ETH_INTERFACE:-eth0}
+      - AP_SSID
+      - AP_PASSWORD
+      - AP_CHANNEL
+      - AP_INTERFACE
+      - AP_IP
+      - AP_NETMASK
+      - AP_DHCP_RANGE
+      - ETH_INTERFACE
     labels:
       io.balena.features.kernel-modules: "1"
 
@@ -34,11 +34,11 @@ services:
     volumes:
       - leases:/data/leases
     environment:
-      - ETH_INTERFACE=${ETH_INTERFACE:-eth0}
-      - ETH_IP=${ETH_IP:-192.168.100.1}
-      - ETH_NETMASK=${ETH_NETMASK:-255.255.255.0}
-      - ETH_DHCP_RANGE=${ETH_DHCP_RANGE:-192.168.100.10,192.168.100.200,12h}
-      - ETH_DNS=${ETH_DNS:-8.8.8.8,8.8.4.4}
+      - ETH_INTERFACE
+      - ETH_IP
+      - ETH_NETMASK
+      - ETH_DHCP_RANGE
+      - ETH_DNS
 
   ssh-jumpbox:
     build: ./ssh-jumpbox
@@ -47,8 +47,8 @@ services:
     volumes:
       - leases:/data/leases:ro
     environment:
-      - SSH_PASSWORD=${SSH_PASSWORD}
-      - SSH_PORT=${SSH_PORT:-22222}
+      - SSH_PASSWORD
+      - SSH_PORT
     labels:
       io.balena.features.balena-socket: "1"
 
@@ -60,9 +60,9 @@ services:
       io.balena.features.dbus: "1"
     environment:
       - DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket
-      - MGMT_WIFI_SSID=${MGMT_WIFI_SSID}
-      - MGMT_WIFI_PASSWORD=${MGMT_WIFI_PASSWORD}
-      - MGMT_WIFI_INTERFACE=${MGMT_WIFI_INTERFACE:-wlan0}
+      - MGMT_WIFI_SSID
+      - MGMT_WIFI_PASSWORD
+      - MGMT_WIFI_INTERFACE
 
   dashboard:
     build: ./dashboard
@@ -71,7 +71,7 @@ services:
     volumes:
       - leases:/data/leases:ro
     environment:
-      - DASHBOARD_PORT=${DASHBOARD_PORT}
-      - DASHBOARD_USER=${DASHBOARD_USER}
-      - DASHBOARD_PASSWORD=${DASHBOARD_PASSWORD}
-      - SSH_PASSWORD=${SSH_PASSWORD}
+      - DASHBOARD_PORT
+      - DASHBOARD_USER
+      - DASHBOARD_PASSWORD
+      - SSH_PASSWORD

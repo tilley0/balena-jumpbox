@@ -1,6 +1,8 @@
-FROM balenalib/%%BALENA_MACHINE_NAME%%-alpine:latest
+FROM balenalib/%%BALENA_MACHINE_NAME%%-debian:latest
 
-RUN apk add --no-cache networkmanager
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    network-manager \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
