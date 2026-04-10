@@ -36,12 +36,12 @@ bind-interfaces
 dhcp-range=${DHCP_RANGE}
 dhcp-option=option:router,${IP}
 dhcp-option=option:dns-server,${DNS}
-dhcp-leasefile=/var/lib/misc/dnsmasq.leases
+dhcp-leasefile=/data/leases/dnsmasq.leases
 log-dhcp
 log-queries
 EOF
 
-mkdir -p /var/lib/misc
+mkdir -p /data/leases
 
 echo "Starting dnsmasq on ${IFACE}..."
 exec dnsmasq --no-daemon --conf-file=/etc/dnsmasq.conf

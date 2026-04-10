@@ -1,5 +1,8 @@
 version: "2.1"
 
+volumes:
+  leases:
+
 services:
   wifi-ap:
     build: ./wifi-ap
@@ -28,6 +31,8 @@ services:
     restart: always
     cap_add:
       - NET_ADMIN
+    volumes:
+      - leases:/data/leases
     environment:
       - ETH_INTERFACE=${ETH_INTERFACE:-eth0}
       - ETH_IP=${ETH_IP:-192.168.100.1}
@@ -39,8 +44,21 @@ services:
     build: ./ssh-jumpbox
     network_mode: host
     restart: always
+    volumes:
+      - leases:/data/leases:ro
     environment:
       - SSH_PASSWORD=${SSH_PASSWORD}
       - SSH_PORT=${SSH_PORT:-22222}
     labels:
       io.balena.features.balena-socket: "1"
+
+  dashboard:
+    build: ./dashboard
+    network_mode: host
+    restart: always
+    volumes:
+      - leases:/data/leases:ro
+    environment:
+      - DASHBOARD_PORT=${DASHBOARD_PORT:-8080}
+      - DASHBOARD_USER=${DASHBOARD_USER:-admin}
+      - DASHBOARD_PASSWORD=${DASHBOARD_PASSWORD:-${SSH_PASSWORD}}

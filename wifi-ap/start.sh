@@ -71,6 +71,8 @@ dnsmasq \
     --interface="${IFACE}" \
     --bind-interfaces \
     --dhcp-range="${DHCP_RANGE}" \
+    --dhcp-option=option:router,"${IP}" \
+    --dhcp-option=option:dns-server,"${IP}" \
     --no-daemon &
 DNSMASQ_PID=$!
 

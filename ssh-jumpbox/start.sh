@@ -35,9 +35,10 @@ cat > /etc/motd <<'EOF'
   Server Network: 192.168.100.0/24  (eth0)
 
   Useful commands:
-    View DHCP leases:  cat /var/lib/misc/dnsmasq.leases
+    View DHCP leases:  cat /data/leases/dnsmasq.leases
     Scan network:      nmap -sn 192.168.100.0/24
     SSH to server:     ssh <user>@192.168.100.x
+    Dashboard:         http://10.0.0.1:8080
 
 EOF
 
