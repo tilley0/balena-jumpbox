@@ -5,6 +5,7 @@ SSID="${MGMT_WIFI_SSID}"
 PASSWORD="${MGMT_WIFI_PASSWORD}"
 IFACE="${MGMT_WIFI_INTERFACE:-wlan0}"
 ETH="${ETH_INTERFACE:-eth0}"
+AP_IFACE="${AP_INTERFACE:-wlp1s0u1u2}"
 CONNECTION_NAME="mgmt-wifi"
 
 echo "=== WiFi Manager Service ==="
@@ -27,6 +28,15 @@ done
 # Set eth0 to unmanaged by NetworkManager
 nmcli device set "${ETH}" managed no 2>/dev/null || true
 echo "${ETH} is now unmanaged by NetworkManager"
+
+# ---------------------------------------------------------------
+# Release USB WiFi adapter from NetworkManager so hostapd owns it.
+# NetworkManager will fight hostapd for control otherwise.
+# ---------------------------------------------------------------
+echo "Releasing ${AP_IFACE} from NetworkManager..."
+nmcli device disconnect "${AP_IFACE}" 2>/dev/null || true
+nmcli device set "${AP_IFACE}" managed no 2>/dev/null || true
+echo "${AP_IFACE} is now unmanaged by NetworkManager"
 
 # ---------------------------------------------------------------
 # Configure management WiFi on wlan0

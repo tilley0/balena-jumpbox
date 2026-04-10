@@ -64,6 +64,7 @@ services:
       - MGMT_WIFI_PASSWORD
       - MGMT_WIFI_INTERFACE
       - ETH_INTERFACE
+      - AP_INTERFACE
 
   dashboard:
     build: ./dashboard
